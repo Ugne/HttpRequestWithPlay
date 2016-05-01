@@ -1,0 +1,85 @@
+@(form: Form[ChartForm], currencies: List[EnCurrencyItem], exchangeRates: ExchangeRates)
+
+@main("Currency rate chart") {
+	<div class="container" style="padding-top: 15px; padding-bottom: 15px;">
+	@helper.form(action = routes.CurrencyRateChartController.getData(), 'id -> "chartForm") {
+		<div style="display:table; margin: 0 auto;">
+            <div class="form-group">
+            	<span class="label label-danger"></span>
+                <div class='input-group date datepicker' style="width: 300px;">
+                    <input type='text' class="form-control app-date-from" name='@form("dateFrom").name' value='@form("dateFrom").value' placeholder="Date from..."/>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+            	<span class="label label-danger"></span>
+                <div class='input-group date datepicker' style="width: 300px;">
+                    <input type='text' class="form-control app-date-to" name='@form("dateTo").name' value='@form("dateTo").value' placeholder="Date to..."/>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+        	</div>
+	        <script type="text/javascript">
+	            $(function () {
+	                $('.datepicker').datetimepicker({
+	                	format: 'YYYY-MM-DD'
+		                });
+	            });
+	        </script>
+	        <span class="label label-danger"></span>
+			<div class="form-group">
+				<select class="selectpicker" data-live-search="true" data-width="300" name="@form("currency").name">
+					<option data-hidden="true" value="">Choose currency...</option>
+					@for(currency <- currencies){
+				  		<option value="@currency.getCurrency" @(if(currency.getCurrency.equals(form("currency").value)) "selected")>@currency.getDescription</option>
+				  		}
+				</select>
+			</div>
+			<div class="form-group">
+				<button id="app-get-chart" type="submit" class="btn btn-primary" style="width: 150px;">Show chart</button>
+			</div>
+		</div>
+	}
+	@if(flash.get("error") != null){
+		<div class="alert alert-danger">@flash.get("error")</div>
+	}
+	
+	@if(!exchangeRates.getExchangeRates().isEmpty()){
+		<div>
+			<canvas id="myChart"></canvas>
+		</div>
+		<script type="text/javascript">
+		var currency = "@exchangeRates.getExchangeRates().get(0).getCurrency() Currency rate statistics (@exchangeRates.getExchangeRates().get(0).getUnit())";
+		var dates = [];
+		var rates = [];
+		 @for(item <- exchangeRates.getExchangeRates()){
+		 	dates.push("@item.getDate()");
+		 	rates.push(@item.getRate());
+		 	}
+		var data = {
+	            labels: dates,
+	            datasets: [
+	                {
+	                    label: currency,
+	                    fillColor: "rgba(151,187,205,0.2)",
+	                    strokeColor: "rgba(151,187,205,1)",
+	                    pointColor: "rgba(151,187,205,1)",
+	                    pointStrokeColor: "#fff",
+	                    pointHighlightFill: "#fff",
+	                    pointHighlightStroke: "rgba(151,187,205,1)",
+	                    data: rates 
+	                }
+	            ]
+	        };
+		var ctx = document.getElementById("myChart").getContext("2d");
+		var myLineChart = Chart.Line(ctx, {
+		    data: data,
+		    responsive: true
+		});
+		</script>
+	}
+	</div>
+}

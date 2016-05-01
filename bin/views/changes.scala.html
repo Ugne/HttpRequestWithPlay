@@ -1,0 +1,66 @@
+@import utils.Formatter
+@(form: Form[ChangesForm], exchangeRates: ExchangeRates)
+
+@main("Currency rate changes") {
+	<div class="container"  style="padding-top: 15px; padding-bottom: 15px;">
+	@helper.form(action = routes.CurrencyRateChangesController.getData(), 'id -> "changesForm") {
+		<div style="display:table; margin: 0 auto;">
+            <div class="form-group">
+            	<span class="label label-danger"></span>
+               	<div class='input-group date datepicker' style="width: 300px;">
+                    <input type='text' class="form-control app-date" name='@form("date").name' value='@form("date").value' placeholder="Date..."/>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+	        </div>
+	        <script type="text/javascript">
+	            $(function () {
+	                $('.datepicker').datetimepicker({
+	                	format: 'YYYY-MM-DD'
+		                });
+	            });
+	        </script>
+		    <div class="form-group">
+				<button id="app-get-changes" type="submit" class="btn btn-primary" style="width: 150px;">Get rates</button>
+			</div>
+		</div>
+	}
+	@if(flash.get("error") != null){
+		<div class="alert alert-danger">@flash.get("error")</div>
+	}else{
+		 @if(!exchangeRates.getExchangeRates().isEmpty){
+		 	<table class="table table-striped table-condensed">
+		    <thead>
+		      <tr>
+		        <th>Currency</th>
+		        <th>Quantity</th>
+		        <th>Rate</th>
+		        <th>Unit</th>
+		        <th>Change</th>
+		      </tr>
+		    </thead>
+		    <tbody>
+		    @for(item <- exchangeRates.getExchangeRates()){
+		      <tr>
+		        <td>@item.getCurrency()</td>
+		        <td>@item.getQuantity()</td>
+		        <td>@item.getRate()</td>
+		        <td>@item.getUnit()</td>
+		        @if(item.getChange() > 0){
+	        		<td style="color: green;">+@Formatter.formatChange(item.getChange())</td>
+	        	}else {
+	        		@if(item.getChange() < 0){
+	        		<td style="color: red;">@Formatter.formatChange(item.getChange())</td>
+	        		}else {
+	        			<td>0</td>
+	        		}
+	        	}
+		      </tr>
+		      }
+		    </tbody>
+		  </table>
+	  	}
+	  }
+	  </div>
+}
